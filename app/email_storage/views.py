@@ -29,7 +29,6 @@ class EmailAccountsView(ListView, LoginRequiredMixin):
         return context
 
     def post(self, request, *args, **kwargs):
-        # p = 'rvhtnzkpghuhsxrj'
         form = EmailAccountForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data.get("email")
