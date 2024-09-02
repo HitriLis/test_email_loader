@@ -1,8 +1,13 @@
 from django.urls import reverse_lazy
+from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
 from .forms import SignInForm
+
+
+def index(request):
+    return redirect('home')
 
 class SignInView(LoginView):
     template_name = 'users/login.html'
