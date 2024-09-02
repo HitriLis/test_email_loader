@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+{% load static %}
+{% load bootstrap4 %}
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+  <nav class="navbar navbar-light bg-light justify-content-between">
+  <a class="navbar-brand">EmailParser</a>
+  <form method="post" class="form-inline" action="{% url 'sign-out' %}">
+    {% csrf_token %}
+    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Выход</button>
+  </form>
+</nav>
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+{% extends 'layout.html' %}
+{% load bootstrap4 %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+    <h1>Доступные аккаунты для парсинга</h1>
+    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-item-modal">
+        Добавить аккаунт
+    </button>
+</div>
+
+
+<table class="table table-striped table-dark">
+    <thead>
+    <tr>
+        <th scope="col">Email</th>
+        <th scope="col">Хост</th>
+        <th scope="col">Дата последней проверки</th>
+        <th scope="col">Идет роверка</th>
+        <th scope="col">Всего сообщении</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if object_list %}
+    {% for item in object_list %}
+    <tr>
+        <th scope="row">
+            <a href="{% url 'email_account_detail' item.id %}">{{ item.email }}</a>
+        </th>
+        <th scope="row">{{ item.host }}</th>
+        <th scope="row">
+            {% if item.last_parse  %}
+              {{ item.last_parse|date:"Y-m-d H:i:s" }}
+            {% else %}
+              -
+            {% endif %}
+        </th>
+        <th scope="row">{{ item.start_parse }}</th>
+        <th scope="row">{{ item.count_messages }}</th>
+    </tr>
+    {% endfor %}
+    {% else %}
+    <tr>
+        <td colspan="5">нет записей</td>
+    </tr>
+    {% endif %}
+    </tbody>
+</table>
+
+{% if is_paginated %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1">Previous</a></li>
+        {% endif %}
+        {% for i in page_obj.paginator.page_range %}
+        {% if i == page_obj.number %}
+        <li class="page-item active"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+        {% else %}
+        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1">Next</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+<div class="modal fade" id="add-item-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Добавить аккаунт</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="alert-error"></div>
+            <form class="modal-body" id="email-account-form" method="post" novalidate>
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    const appendAlert = (message, type) => {
+        const alertPlaceholder =$('#alert-error')
+        const wrapper = document.createElement('div')
+
+        wrapper.innerHTML = [
+            `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+            `<div>${message}</div>`,
+            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"> <span aria-hidden="true">&times;</span></button>',
+            '</div>'
+        ].join('')
+        alertPlaceholder.append(wrapper)
+    }
+
+    $(document).ready(function () {
+        $('#email-account-form').submit(function (event) {
+            event.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'),
+                data: $(this).serialize(),
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 'ok') {
+                        window.location.reload();
+                    }
+                },
+                error: function (error) {
+                    const data = error.responseJSON
+                    appendAlert(data.detail, 'danger')
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
