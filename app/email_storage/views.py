@@ -54,7 +54,6 @@ class EmailAccountsView(ListView, LoginRequiredMixin):
     async def async_login(self, email, password, host):
         async with AsyncEmailClient(host=host, ssl=True) as client:
             login = await client.login(email, password)
-            print(login)
             return login
 
 

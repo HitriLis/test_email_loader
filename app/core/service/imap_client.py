@@ -100,9 +100,12 @@ class AsyncEmailClient:
 
     async def disconnect(self):
         """Отключение от IMAP сервера."""
-        if self.conn:
-            await self.conn.logout()
-            await self.conn.close()
+        try:
+            if self.conn:
+                await self.conn.logout()
+                await self.conn.close()
+        except Exception as e:
+            print(e)
 
     async def messages_list(self, folder: str, query: str = None) -> List[str]:
         """
