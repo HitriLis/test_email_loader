@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, TemplateView
 from .forms import EmailAccountForm
-from .models import EmailAccount, EmailMessage
+from .models import EmailAccount
 from core.service.imap_client import AsyncEmailClient
 from asgiref.sync import async_to_sync
 
@@ -16,7 +16,7 @@ class EmailAccountsView(ListView, LoginRequiredMixin):
 
     def get_queryset(self):
         user = self.request.user
-        return EmailAccount.objects.filter(user=user).annotate(count_messages=Count('messages')).order_by('-id')
+        return EmailAccount.objects.filter(user=user).prefetch_related('messages').annotate(count_messages=Count('messages')).order_by('-id')
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -70,8 +70,8 @@ class EmailAccountDetailView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         pk = self.kwargs.get('pk')
-        email_account = EmailAccount.objects.get(pk=pk, user=user)
-        messages = EmailMessage.objects.filter(account=email_account).order_by('-date_sent')
+        email_account = EmailAccount.objects.get(pk=pk, user=user).prefetch_related('messages')
+        messages = email_account.messages.order_by('-date_sent')
         paginator = Paginator(messages, self.paginate_by)
         page_number = self.request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)

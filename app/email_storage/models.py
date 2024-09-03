@@ -33,7 +33,7 @@ class EmailAccount(models.Model):
         return cls.objects.filter(
             pk=email_account_id,
             user_id=user_id
-        ).annotate(count_messages=models.Count('messages')).first()
+        ).prefetch_related('messages').annotate(count_messages=models.Count('messages')).first()
 
     @classmethod
     @database_sync_to_async
